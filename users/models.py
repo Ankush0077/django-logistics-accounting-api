@@ -87,7 +87,8 @@ class UserDetails(models.Model):
     WORK_CHOICES = (
         ('Transport Contractor','Transport Contractor'),
         ('Truck Owner','Truck Owner'),
-        ('Commission Agent','Commission Agent')
+        ('Commission Agent','Commission Agent'),
+        ('Shipper','Shipper'),
         )
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     user_name = models.CharField(_('name of user'),max_length=100)
@@ -95,8 +96,8 @@ class UserDetails(models.Model):
     city = models.CharField(_('city of residence'),max_length=100)
     work = MultiSelectField(_('occupation of user'),choices= WORK_CHOICES)
     
-    USERNAME_FIELD = 'user_name'
-    REQUIRED_FIELDS = ['user','email','city','work']
+    USERNAME_FIELD = 'user'
+    REQUIRED_FIELDS = ['user_name','email','city','work']
     
     def __str__(self):
         return self.user_name

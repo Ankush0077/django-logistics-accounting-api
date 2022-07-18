@@ -1,5 +1,6 @@
 from django.contrib import admin
 from django.urls import path, include
+from requests import post, request
 # from rest_framework_jwt.views import TokenObtainPairView,TokenRefreshView,TokenVerifyView
 from rest_framework.routers import DefaultRouter
 from khatadata import views as khataviews
@@ -38,6 +39,12 @@ action2 = {'get': 'retrieve',
            'patch' : 'partial_update',
            'delete' : 'destroy'}
 
+UserRouter = DefaultRouter()
+UserDetailsRouter = DefaultRouter()
+
+UserRouter.register('',usersviews.USerReadOnlyModelViewSet,basename='user')
+UserDetailsRouter.register('',usersviews.UserDetailsModelViewSet,basename='userdetails')
+
 urlpatterns = [
     path('admin/', admin.site.urls),
     # path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
@@ -56,6 +63,8 @@ urlpatterns = [
     path('api/khatadata/driver/driver_transaction/',khataviews.DriverTransactionModelViewSet.as_view(action1)),
     path('api/khatadata/driver/driver_transaction/<str:driver_phone_number>/',khataviews.DriverTransactionModelViewSet.as_view(action2)),
     path('api/user/',usersviews.OtpAPI),
-    path('api/user/userdetails/',usersviews.UserDetailsModelViewSet.as_view(action1)),
-    path('api/user/userdetails/<str:user_phone_number>/',usersviews.UserDetailsModelViewSet.as_view(action2)),
+    path('api/user/otp/',include(UserRouter.urls)),
+    path('api/user/userdetails/',include(UserDetailsRouter.urls)),
+    # path('api/user/userdetails/',usersviews.UserDetailsModelViewSet.as_view(action1)),
+    # path('api/user/userdetails/<str:user_phone_number>/',usersviews.UserDetailsModelViewSet.as_view(action2)),
 ]

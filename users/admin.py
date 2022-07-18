@@ -68,7 +68,7 @@ class UserAdminConfig(UserAdmin):
     fieldsets = (
         ('UserCredentials', {'fields' : ('user_phone_number','date_joined','is_phone_verified',)}),
         ('Permissions', {'fields' : ('is_staff','is_active',)}),
-        ('Personal Information', {'fields' : ('current_otp',)}),
+        ('Personal Information', {'fields' : ('current_otp','password')}),
     )
     add_fieldsets = (
         (None, {

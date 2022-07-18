@@ -1,4 +1,6 @@
 from functools import partial
+import json
+from django.http import HttpResponse,JsonResponse
 from django.shortcuts import render
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -10,6 +12,7 @@ from random import randint
 import requests
 import urllib.request
 import urllib.parse
+from rest_framework.renderers import JSONRenderer
 
 def sendSMS(apikey, numbers, sender, message):
     data =  urllib.parse.urlencode({'apikey': apikey, 'numbers': numbers,
@@ -21,9 +24,9 @@ def sendSMS(apikey, numbers, sender, message):
     return(fr)
 
 # class OtpAPI(APIView):
-#     def get(self,request,phone_number=None,format=None):
-#         if phone_number is not None:
-#             otp=User.objects.get(phone_number=phone_number)
+#     def get(self,request,user_phone_number=None,format=None):
+#         if user_phone_number is not None:
+#             otp=User.objects.get(user_phone_number=user_phone_number)
 #             serializer=UserSerializer(otp)
 #             return Response(serializer.data,status=status.HTTP_200_OK)
 #         otp=User.objects.all()
@@ -37,89 +40,101 @@ def sendSMS(apikey, numbers, sender, message):
 #             return Response({'msg':'Data Created'},status=status.HTTP_201_CREATED)
 #         return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
     
-#     def put(self,request,phone_number,format=None):
-#         otp=User.objects.get(phone_number=phone_number)
+#     def put(self,request,user_phone_number,format=None):
+#         otp=User.objects.get(user_phone_number=user_phone_number)
 #         serializer=UserSerializer(otp,data=request.data)
 #         if serializer.is_valid():
 #             serializer.save()
 #             return Response({'msg':'Complete Data Updated'},status=status.HTTP_200_OK)
 #         return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
     
-#     def patch(self,request,phone_number,format=None):
-#         otp=User.objects.get(phone_number=phone_number)
+#     def patch(self,request,user_phone_number,format=None):
+#         otp=User.objects.get(user_phone_number=user_phone_number)
 #         serializer=UserSerializer(otp,data=request.data,partial=True)
 #         if serializer.is_valid():
 #             serializer.save()
 #             return Response({'msg':'Partial Data Updated'},status=status.HTTP_200_OK)
 #         return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
     
-#     def delete(self,request,phone_number,format=None):
-#         otp=User.objects.get(phone_number=phone_number)
+#     def delete(self,request,user_phone_number,format=None):
+#         otp=User.objects.get(user_phone_number=user_phone_number)
 #         otp.delete()
 #         return Response({'msg':'Data Deleted'},status=status.HTTP_200_OK)
 # class TranspeOtpAPI(APIView):
 @api_view(['POST','PUT','PATCH'])
 def OtpAPI(request):
-    phone_number=request.data.get('phone_number')
+    res = {'msg':'OTP Sent Successfully!!'}
+    # json_data = JSONRenderer().render(res)
+    # return Response(res,status=status.HTTP_200_OK)
+    data = json.loads(request.body.decode("utf-8"))
+    # return Response(request,status=status.HTTP_200_OK)
+    user_phone_number:str=data['user_phone_number']
+    # return Response(user_phone_number,status=status.HTTP_200_OK)
     if request.method == 'POST' or 'PUT' or 'PATCH':
         try:
-            otp=User.objects.get(phone_number=phone_number)
+            otp=User.objects.get(user_phone_number=user_phone_number)
             # serializer=UserSerializer(otp)
             # return Response(serializer.data,status=status.HTTP_200_OK)
             
         except:
             current_otp=randint(100000,999999)
             user={
-                        'phone_number':phone_number,
-                        'is_phone_verified':True,
+                        'user_phone_number':user_phone_number,
+                        'is_phone_verified':False,
                         'current_otp': current_otp,
+                        'is_active': True,
                         
                     }
             serializer=UserSerializer(data=user)
             if serializer.is_valid():
                 serializer.save()
                 requests.post('https://textbelt.com/intl',{
-                    'phone':f'+91{phone_number}',
-                    'message':f'TransPe-{current_otp} is verification code for your number {phone_number}',
+                    'phone':f'+91{user_phone_number}',
+                    'message':f'TransPe-{current_otp} is verification code for your number {user_phone_number}',
                     'key':'textbelt',
                     'carrier':'%s@airtelmail.com'
                 })
-                resp=sendSMS('NDM2Zjc4NGEzMjc3NzU0MjQ5NWE1MTM2NmE0YTQ0NTk=', phone_number,
-                        'TransPe', f'TransPe-{current_otp} is verification code for your number {phone_number}')
-                print(resp)
+                resp=sendSMS('NDM2Zjc4NGEzMjc3NzU0MjQ5NWE1MTM2NmE0YTQ0NTk=', user_phone_number,
+                        'TransPe', f'TransPe-{current_otp} is verification code for your number {user_phone_number}')
+                # print(resp)
                 return Response({'msg':'OTP Sent Successfully!!'},status=status.HTTP_200_OK)
             else:
                 return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
         else:
             current_otp=randint(100000,999999)
             user={
-                        'phone_number':phone_number,
-                        'is_phone_verified':True,
+                        'user_phone_number':user_phone_number,
+                        'is_phone_verified':False,
                         'current_otp': current_otp,
+                        'is_active': True,
                 }
             serializer=UserSerializer(otp,data=user)
             if serializer.is_valid():
                 serializer.save()
                 # requests.post('https://textbelt.com/text',{
-                #         'phone':f'+91{phone_number}',
-                #         'message':f'TransPe-{current_otp} is verification code for your number {phone_number}',
+                #         'phone':f'+91{user_phone_number}',
+                #         'message':f'TransPe-{current_otp} is verification code for your number {user_phone_number}',
                 #         'key':'textbelt'
                 # })
-                resp=sendSMS('NDM2Zjc4NGEzMjc3NzU0MjQ5NWE1MTM2NmE0YTQ0NTk=', phone_number,
-                        'TransPe', f'TransPe-{current_otp} is verification code for your number {phone_number}')
+                resp=sendSMS('NDM2Zjc4NGEzMjc3NzU0MjQ5NWE1MTM2NmE0YTQ0NTk=', user_phone_number,
+                        'TransPe', f'TransPe-{current_otp} is verification code for your number {user_phone_number}')
                 print(resp)
                 return Response({'msg':'OTP Sent Successfully!!'},status=status.HTTP_200_OK)
             else:
                 return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
         
     elif request.method =='GET':
-        if phone_number is not None:
-            otp=User.objects.get(phone_number=phone_number)
+        if user_phone_number is not None:
+            otp=User.objects.get(user_phone_number=user_phone_number)
             serializer=UserSerializer(otp)
             return Response(serializer.data.get("current_otp"),status=status.HTTP_200_OK)
         otp=User.objects.all()
         serializer=UserSerializer(otp,many=True)
         return Response(serializer.data,status=status.HTTP_200_OK)
+    
+class USerReadOnlyModelViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
     
 class UserDetailsModelViewSet(viewsets.ModelViewSet):
     queryset = UserDetails.objects.all()

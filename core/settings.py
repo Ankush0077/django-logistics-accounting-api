@@ -26,7 +26,10 @@ SECRET_KEY = 'django-insecure-yub8_39ky@*b)c4(dl5byu2g%t&cri15+2k14_+kmvvlusp^y+
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    '127.0.0.1',
+    '10.0.2.2',
+    ]
 
 
 # Application definition
@@ -178,3 +181,21 @@ CORS_ALLOW_METHODS = [
 AUTH_USER_MODEL = 'users.User'
 
 # AUTHENTICATION_BACKENDS = ["account.backend.ModelBackend"]
+
+import os
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'WARNING',
+    },
+}
+
+APPEND_SLASH=F=True
